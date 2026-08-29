@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Lunar\Upgrade\Rector;
 
 use Lunar\Upgrade\Rector\Models\RewriteModelClassCallRector;
+use Lunar\Upgrade\Rector\Orders\RewriteOrderRefundCallRector;
+use Lunar\Upgrade\Rector\Pricing\RetypeFormatterStyleParamRector;
 
 /**
  * Catalog of Rector renames contributed by v2 breaking specs.
@@ -177,7 +179,6 @@ final class LunarSetList
         'Lunar\\Database\\Seeders\\DemoSeeder' => 'Lunar\\Core\\Database\\Seeders\\DemoSeeder',
         'Lunar\\Database\\Seeders\\TestingSeeder' => 'Lunar\\Core\\Database\\Seeders\\TestingSeeder',
         'Lunar\\DiscountTypes\\AbstractDiscountType' => 'Lunar\\Core\\DiscountTypes\\AbstractDiscountType',
-        'Lunar\\DiscountTypes\\AmountOff' => 'Lunar\\Core\\DiscountTypes\\AmountOff',
         'Lunar\\DiscountTypes\\BuyXGetY' => 'Lunar\\Core\\DiscountTypes\\BuyXGetY',
         'Lunar\\Drivers\\SystemTaxDriver' => 'Lunar\\Core\\Drivers\\SystemTaxDriver',
         'Lunar\\Events\\PaymentAttemptEvent' => 'Lunar\\Core\\Events\\PaymentAttemptEvent',
@@ -346,6 +347,7 @@ final class LunarSetList
         'Lunar\\Observers\\UrlObserver' => 'Lunar\\Core\\Observers\\UrlObserver',
         'Lunar\\PaymentTypes\\AbstractPayment' => 'Lunar\\Core\\PaymentTypes\\AbstractPayment',
         'Lunar\\PaymentTypes\\OfflinePayment' => 'Lunar\\Core\\PaymentTypes\\OfflinePayment',
+        'Lunar\\Paypal\\PaypalInterface' => 'Lunar\\Paypal\\Contracts\\PaypalInterface',
         'Lunar\\Pipelines\\CartLine\\GetUnitPrice' => 'Lunar\\Core\\Pipelines\\CartLine\\GetUnitPrice',
         'Lunar\\Pipelines\\CartPrune\\PruneAfter' => 'Lunar\\Core\\Pipelines\\CartPrune\\PruneAfter',
         'Lunar\\Pipelines\\CartPrune\\WhereNotMerged' => 'Lunar\\Core\\Pipelines\\CartPrune\\WhereNotMerged',
@@ -528,6 +530,8 @@ final class LunarSetList
      */
     public const V1_TO_V2 = [
         RewriteModelClassCallRector::class,
+        RewriteOrderRefundCallRector::class,
+        RetypeFormatterStyleParamRector::class,
     ];
 
     /**
@@ -627,11 +631,20 @@ final class LunarSetList
      * protected slot methods `getDefaultForm` / `getDefaultTable` back to
      * Filament's native `form` / `table` entry points.
      *
+     * Spec 0056 renamed the `ProductType` attribute pivot relation
+     * `mappedAttributes` to `attributeMapping`, freeing `mappedAttributes`
+     * for the standard attributable meaning (the type's own fields) now that
+     * product types carry `attribute_data`. Both the v1 and v2 class strings
+     * are listed so the rename applies regardless of whether
+     * `RenameClassRector` has already rewritten the surrounding type.
+     *
      * @var array<int, array{0: class-string, 1: string, 2: string}>
      */
     public const V1_TO_V2_METHOD_RENAMES = [
         ['Lunar\\Admin\\Support\\Resources\\BaseResource', 'getDefaultForm', 'form'],
         ['Lunar\\Admin\\Support\\Resources\\BaseResource', 'getDefaultTable', 'table'],
+        ['Lunar\\Core\\Models\\ProductType', 'mappedAttributes', 'attributeMapping'],
+        ['Lunar\\Models\\ProductType', 'mappedAttributes', 'attributeMapping'],
     ];
 
     /**
@@ -658,6 +671,10 @@ final class LunarSetList
      * in the upgrade notes (those are almost always the morph/pivot accesses,
      * which must not be renamed anyway).
      *
+     * Spec 0056 renamed the `ProductType` attribute pivot relation (see
+     * `V1_TO_V2_METHOD_RENAMES`); the property fetch form
+     * (`$type->mappedAttributes`) is covered here.
+     *
      * @var array<int, array{0: class-string, 1: string, 2: string}>
      */
     public const V1_TO_V2_PROPERTY_RENAMES = [
@@ -665,6 +682,8 @@ final class LunarSetList
         ['Lunar\\Models\\Price', 'compare_price', 'list_price'],
         ['Lunar\\Core\\Models\\ProductVariant', 'purchasable', 'selling_policy'],
         ['Lunar\\Models\\ProductVariant', 'purchasable', 'selling_policy'],
+        ['Lunar\\Core\\Models\\ProductType', 'mappedAttributes', 'attributeMapping'],
+        ['Lunar\\Models\\ProductType', 'mappedAttributes', 'attributeMapping'],
     ];
 
     /**
